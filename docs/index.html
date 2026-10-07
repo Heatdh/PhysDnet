@@ -1,0 +1,812 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PhysDNet</title>
+<meta name="description" content="PhysDNet: Physics-Driven Gradient Amplification for Real-Time Image Dehazing. NeurIPS 2026.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Source+Code+Pro:wght@400;500&display=swap">
+<style>
+/* Layout: plain white academic project page; centred title block, one 960px column, figures at column width. Single light theme by design. */
+:root {
+  --bg: #ffffff;
+  --ink: #1a1a1a;
+  --muted: #5f6368;
+  --rule: #e3e3e3;
+  --link: #1a5fb4;
+  --hl: #f5f7fa;
+  --accent: #c0392b;   /* used only for "ours" marks in the interactive figures */
+  --f-sans: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+  --f-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-mono: "Source Code Pro", ui-monospace, Consolas, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 400 17px/1.6 var(--f-sans); margin: 0; }
+.wrap { max-width: 960px; margin: 0 auto; padding-inline: 20px; padding-block: 0 56px; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+p { margin: 0; }
+.mono { font-family: var(--f-mono); font-size: 0.9em; }
+
+/* title block */
+.titleblock { text-align: center; padding-block: 56px 8px; display: grid; gap: 14px; justify-items: center; }
+.titleblock h1 { font: 600 clamp(1.9rem, 4.4vw, 2.7rem)/1.2 var(--f-serif); max-width: 22em; }
+.venue { font-size: 1.05rem; color: var(--muted); }
+.authors { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 22px; font-size: 1.1rem; max-width: 820px; }
+.authors sup, .affils sup { font-size: 0.7em; }
+.affils { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 20px; color: var(--muted); font-size: 0.95rem; max-width: 820px; }
+.corr { color: var(--muted); font-size: 0.88rem; }
+.links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
+.btn { display: inline-flex; align-items: center; gap: 7px; font: 600 0.95rem/1 var(--f-sans); padding: 10px 18px; border-radius: 999px; background: #222; color: #fff; border: 0; cursor: pointer; }
+.btn:hover { background: #000; text-decoration: none; }
+.btn[aria-disabled="true"] { background: #9a9a9a; cursor: default; }
+.btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+
+/* sections */
+section { padding-block: 44px 0; display: grid; gap: 18px; }
+section, .sub, .panel, figure { grid-template-columns: minmax(0, 1fr); }
+section > *, .sub > *, .panel > * { min-width: 0; }
+section > h2 { font: 600 1.6rem/1.25 var(--f-serif); text-align: center; }
+section > h3, .sub h3 { font: 600 1.2rem/1.3 var(--f-serif); }
+.sub { display: grid; gap: 14px; padding-top: 10px; }
+.prose { display: grid; gap: 12px; text-align: justify; hyphens: auto; }
+.abstract { background: var(--hl); padding: 22px 26px; border-radius: 6px; }
+figure { margin: 0; display: grid; gap: 10px; }
+figure img { width: 100%; height: auto; display: block; }
+figcaption { font-size: 0.93rem; color: var(--muted); line-height: 1.5; }
+figcaption b { color: var(--ink); font-weight: 600; }
+.narrow { max-width: 720px; margin-inline: auto; width: 100%; }
+
+/* teaser */
+.teaser { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: center; padding-top: 28px; }
+@media (max-width: 760px) { .teaser { grid-template-columns: 1fr; } }
+.compare { position: relative; aspect-ratio: 1; max-width: 100%; overflow: hidden; background: #000; user-select: none; touch-action: none; }
+.compare img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.compare .after { clip-path: inset(0 0 0 var(--split, 50%)); }
+.compare .lidar { mix-blend-mode: screen; opacity: 0; transition: opacity .3s; image-rendering: pixelated; filter: saturate(1.6) brightness(1.9); }
+.compare.show-lidar .lidar { opacity: 1; }
+.compare .handle { position: absolute; top: 0; bottom: 0; left: var(--split, 50%); width: 2px; background: #fff; transform: translateX(-1px); pointer-events: none; }
+.compare .handle::after { content: "◀ ▶"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color: #111; font: 600 11px/1 var(--f-sans); padding: 8px; border-radius: 999px; white-space: nowrap; }
+.compare .tag { position: absolute; top: 10px; font: 600 12px/1 var(--f-sans); color: #fff; background: rgba(0,0,0,.55); padding: 5px 8px; pointer-events: none; }
+.compare .tag.l { left: 10px; } .compare .tag.r { right: 10px; }
+.compare input[type=range] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: ew-resize; }
+.teaser-side { display: grid; gap: 16px; }
+.overview { padding-top: 28px; }
+.highlights { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.toggle { display: inline-flex; gap: 8px; align-items: center; font-size: 0.95rem; cursor: pointer; }
+
+/* tables */
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; margin-inline: auto; font-size: 0.93rem; font-variant-numeric: tabular-nums; }
+caption { caption-side: top; text-align: left; font-size: 0.93rem; color: var(--muted); padding-bottom: 8px; }
+caption b { color: var(--ink); }
+th, td { padding: 5px 12px; text-align: right; white-space: nowrap; }
+th:first-child, td:first-child, th.l, td.l { text-align: left; }
+thead tr:first-child th { border-top: 1.5px solid var(--ink); }
+thead tr:last-child th { border-bottom: 1px solid var(--ink); font-weight: 600; }
+tbody tr:last-child td { border-bottom: 1.5px solid var(--ink); }
+tr.sep td { border-top: 1px solid var(--rule); }
+tr.ours td { background: var(--hl); }
+td b { font-weight: 700; }
+td u { text-underline-offset: 3px; }
+
+/* interactive panels */
+.panel { border: 1px solid var(--rule); border-radius: 6px; padding: 18px; display: grid; gap: 14px; min-width: 0; }
+.panel .label { font: 600 0.78rem/1 var(--f-sans); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; }
+.chip { font: 600 0.85rem/1 var(--f-sans); padding: 8px 12px; border-radius: 999px; border: 1px solid #bbb; background: #fff; color: var(--ink); cursor: pointer; }
+.chip[aria-pressed="true"] { background: #222; color: #fff; border-color: #222; }
+.slider { display: grid; gap: 2px; flex: 1 1 180px; min-width: 170px; }
+.slider label { display: flex; justify-content: space-between; font-size: 0.88rem; color: var(--muted); }
+.slider output { color: var(--ink); font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.slider input { width: 100%; accent-color: #222; }
+
+.arch { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 18px; }
+@media (max-width: 820px) { .arch { grid-template-columns: 1fr; } }
+.arch-svg { overflow-x: auto; }
+.arch-svg svg { width: 100%; min-width: 540px; height: auto; display: block; }
+.node rect, .node circle { fill: #fff; stroke: #333; stroke-width: 1.1; transition: stroke-width .15s, opacity .3s; }
+.node.dep rect { fill: #eef6ef; stroke: #4b8b57; }
+.node.rgb rect { fill: #eef3fb; stroke: #4a6fa5; }
+.node.dec rect { fill: #f4effa; stroke: #7d5ba6; }
+.node.dir rect { fill: #f1f1f1; stroke: #555; }
+.node.phys rect { fill: #fbeeee; stroke: #b04a4a; }
+.node.gate circle { fill: #fdf6e3; stroke: #b8962e; }
+.node text { fill: var(--ink); font: 600 12px var(--f-sans); pointer-events: none; }
+.node text.sub { fill: var(--muted); font: 400 9.5px var(--f-sans); }
+.node { cursor: pointer; transition: opacity .3s; }
+.node:hover rect, .node:hover circle, .node:focus rect, .node:focus circle { stroke-width: 2.2; }
+.node.active rect, .node.active circle { stroke: #111; stroke-width: 2.6; }
+.edge { fill: none; stroke: #888; stroke-width: 1.2; transition: opacity .3s; }
+.edge.dep { stroke: #4b8b57; }
+.edge.skip { stroke-dasharray: 3 3; }
+.edge.aux { stroke: #8b1a1a; stroke-dasharray: 5 4; stroke-width: 1.6; }
+.edge.flow { stroke: #111; stroke-width: 2.4; stroke-dasharray: 6 5; animation: dash .8s linear infinite; }
+@keyframes dash { to { stroke-dashoffset: -22; } }
+.elabel { fill: var(--muted); font: 400 9px var(--f-sans); }
+.elabel.red { fill: #8b1a1a; font-weight: 600; }
+.arrowhead { fill: #888; }
+svg.nolidar .dep-branch { opacity: 0.15; }
+.info { display: grid; gap: 10px; align-content: start; }
+.info h4 { margin: 0; font: 600 1.1rem/1.3 var(--f-serif); }
+.info .shape { font: 400 0.85rem/1 var(--f-mono); color: var(--muted); }
+.info .formula { font: 400 0.86rem/1.5 var(--f-mono); background: var(--hl); padding: 10px 12px; border-radius: 4px; white-space: pre; overflow-x: auto; }
+
+.canvases { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 700px) { .canvases { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.canvases canvas { width: 100%; aspect-ratio: 1; max-width: 100%; display: block; background: #000; }
+.canvases figcaption { font-size: 0.84rem; text-align: center; }
+.readout { display: flex; flex-wrap: wrap; gap: 6px 24px; font-size: 0.9rem; color: var(--muted); }
+.readout b { color: var(--ink); font-family: var(--f-mono); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
+
+.weather { display: grid; gap: 12px; }
+.weather figcaption { font-size: .85rem; }
+.rtts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; align-items: start; }
+.rtts img { width: 100%; height: auto; display: block; }
+.rtts-h { font: 600 .82rem/1.25 var(--f-sans); text-align: center; color: var(--muted); padding-bottom: 2px; }
+@media (max-width: 560px) { .rtts-h { font-size: .7rem; } }
+nav.toc { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; font-size: .92rem; padding-top: 6px; }
+nav.toc a { color: var(--muted); }
+nav.toc a:hover { color: var(--link); }
+pre.bib { font: 400 0.85rem/1.55 var(--f-mono); background: var(--hl); padding: 18px; overflow-x: auto; margin: 0; white-space: pre; border-radius: 6px; }
+.bibbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.88rem; display: grid; gap: 8px; }
+@media (prefers-reduced-motion: reduce) { .edge.flow { animation: none; } * { transition: none !important; } }
+@media (max-width: 480px) { body { font-size: 16px; } .prose { text-align: left; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header class="titleblock">
+  <h1>PhysDNet: Physics-Driven Gradient Amplification for Real-Time Image Dehazing</h1>
+  <div class="venue">NeurIPS 2026</div>
+  <div class="authors">
+    <span>Rayen Dhahri<sup>1</sup></span>
+    <span>Lei Sun<sup>2</sup></span>
+    <span>Victor Javier Kartsch Morinigo<sup>3</sup></span>
+    <span>Alice Pagnoux<sup>3</sup></span>
+    <span>Luca Benini<sup>3,4</sup></span>
+    <span>Danda Pani Paudel<sup>2</sup></span>
+    <span>Luc Van Gool<sup>2</sup></span>
+  </div>
+  <div class="affils">
+    <span><sup>1</sup>Independent Researcher</span>
+    <span><sup>2</sup>INSAIT, Sofia University “St. Kliment Ohridski”</span>
+    <span><sup>3</sup>ETH Zurich</span>
+    <span><sup>4</sup>DEI, University of Bologna</span>
+  </div>
+  <div class="corr">Contact: rayendhahri@gmail.com</div>
+  <div class="links">
+    <a class="btn" aria-disabled="true" title="Link will be added when the proceedings are online">
+      <svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>Paper</a>
+    <a class="btn" href="https://github.com/Heatdh/PhysDNet-release" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24"><path d="M8 6 2 12l6 6M16 6l6 6-6 6"/></svg>Code</a>
+    <a class="btn" href="#bibtex">
+      <svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM9 9h6M9 13h6"/></svg>BibTeX</a>
+  </div>
+  <nav class="toc" aria-label="Sections">
+    <a href="#abstract">Abstract</a><a href="#example">Example</a><a href="#method">Method</a><a href="#results">Results</a><a href="#analysis">Extended analysis</a><a href="#deployment">Deployment</a><a href="#bibtex">Citation</a>
+  </nav>
+</header>
+
+<figure class="overview">
+  <img src="assets/overview_illustration.jpg" alt="Overview illustration: a smoke-filled corridor and simulated sparse LiDAR enter PhysDNet; differentiating through the physics inversion amplifies gradients in low-transmission regions during training; the restored image reveals a person and an obstacle for detection" width="1586" height="878">
+  <figcaption><b>Overview.</b> Hazy imagery and sparse LiDAR are fused by PhysDNet. During training, differentiating through the physics inversion scales gradients by (t̂+ε)<sup>−2</sup>, focusing learning on low-transmission regions at zero inference cost. Conceptual illustration of a potential emergency-response application; the scene and LiDAR are schematic, not experimental results.</figcaption>
+</figure>
+
+<section id="abstract">
+  <h2>Abstract</h2>
+  <div class="prose abstract">
+    <p>Modern dehazing networks are often computationally expensive and overfit to synthetic haze, limiting real-time deployment. This underscores an urgent demand for efficient, high-fidelity restoration methods that can operate on resource-constrained edge devices in practical, dynamic environments. We introduce PhysDNet, a lightweight multimodal architecture that fuses NIR imagery with sparse LiDAR depth and is trained with a physics-constrained dual-head objective. Differentiating through a fixed Koschmieder inversion induces <i>density-adaptive gradient amplification</i>, acting as an implicit resource allocation mechanism that concentrates learning on heavily degraded regions without increasing inference cost. PhysDNet delivers superior restoration with minimal capacity and enhanced training efficiency, facilitating real-time deployment on edge devices without increasing inference overhead. On the Seeing Through Fog benchmark, PhysDNet outperforms competitors by <b>1.67 dB</b> at <b>5.2×</b> lower compute and recovering <b>54.9%</b> of fog-induced detection loss. Ablations and cross-domain evaluations show that physics-guided training improves generalization including under non-homogeneous haze that violates the Koschmieder assumption. PhysDNet further demonstrates compatibility with fixed-function NPUs, running at <b>29/45/99 FPS</b> at &lt;4 W across L/M/S variants.</p>
+  </div>
+</section>
+
+<section id="example">
+  <h2>Real STF Example</h2>
+<div class="teaser" style="padding-top:0">
+  <div class="compare" id="cmp" style="--split:50%">
+    <img src="assets/hazy_nir.png" alt="Foggy NIR-gated frame of a snowy street at night" width="512" height="512">
+    <img class="after" src="assets/restored.png" alt="The same frame restored by PhysDNet" width="512" height="512">
+    <img class="lidar" src="assets/lidar.png" alt="" width="512" height="512">
+    <div class="handle"></div>
+    <span class="tag l">Hazy NIR input</span><span class="tag r">PhysDNet</span>
+    <input id="cmpRange" type="range" min="0" max="100" value="50" aria-label="Drag to compare hazy input and PhysDNet output">
+  </div>
+  <div class="teaser-side">
+    <p><b>Drag across the image</b> to compare a hazy gated-NIR frame from Seeing Through Fog with PhysDNet's restoration. PhysDNet also receives the sparse projected LiDAR depth shown by the toggle.</p>
+    <label class="toggle"><input type="checkbox" id="lidarToggle"> Overlay sparse LiDAR returns</label>
+    <ul class="highlights">
+      <li><b>36.46 dB</b> PSNR on STF, +1.67 dB over FFA-Net at 5.2× lower compute</li>
+      <li><b>54.9%</b> of fog-induced YOLOv8 detection loss recovered</li>
+      <li><b>29 / 45 / 99 FPS</b> (L / M / S) on a fixed-function NPU at &lt;4 W, INT8</li>
+      <li>Physics head is used only in training: <b>zero inference overhead</b></li>
+    </ul>
+  </div>
+</div>
+</section>
+
+<section id="method">
+  <h2>Method</h2>
+  <figure>
+    <img src="assets/fig1_architecture.png" alt="PhysDNet architecture diagram" width="1109" height="301">
+    <figcaption><b>Figure 1. PhysDNet architecture.</b> Dual encoders extract NIR and sparse-depth features, merged by mask-aware gating with Squeeze-and-Excitation at the bottleneck. The shared representation feeds a direct head (deployed at inference) and a physics head (training only). Backpropagating through the Koschmieder inversion scales gradients by (t̂+ε)<sup>−2</sup>, concentrating optimization on heavily degraded regions at zero inference cost.</figcaption>
+  </figure>
+
+  <div class="panel">
+    <span class="label">Interactive · architecture explorer</span>
+    <div class="arch">
+      <div class="arch-svg">
+        <div class="controls" style="margin-bottom:10px">
+          <button class="chip" id="traceBtn" aria-pressed="false">Trace forward pass</button>
+          <button class="chip" id="dropBtn" aria-pressed="false">Remove LiDAR</button>
+        </div>
+        <svg id="archSvg" viewBox="0 0 680 548" role="img" aria-label="PhysDNet architecture explorer">
+          <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="arrowhead" d="M0 0L10 5L0 10z"/></marker></defs>
+          <g id="edges"></g><g id="nodes"></g>
+        </svg>
+      </div>
+      <div class="info" id="info" aria-live="polite"></div>
+    </div>
+    <p style="font-size:.9rem;color:var(--muted)">Click any block for its role, tensor shape (PhysDNet-M, base width c = 64; S/M/L use c ∈ {32, 64, 96}) and equation.</p>
+  </div>
+
+  <div class="sub">
+    <h3>Density-adaptive gradient amplification</h3>
+    <div class="prose">
+      <p>The physics head predicts transmission t̂ ∈ [0.05, 0.95] and a global airlight Â, then inverts the scattering model <span class="mono">I = J·t + A(1 − t)</span> in closed form: <span class="mono">Ĵ<sub>phys</sub> = (I − Â(1 − t̂)) / (t̂ + ε)</span>. This inversion has no learnable parameters. Its derivative, <span class="mono">∂Ĵ<sub>phys</sub>/∂t̂ = (Â − I) / (t̂ + ε)<sup>2</sup></span>, scales the gradient reaching the shared encoder by up to ≈400× in dense fog relative to clear air. The result is an implicit hard-example mining along the transmission axis, with no extra hyperparameters and no inference cost.</p>
+    </div>
+    <figure>
+      <img src="assets/fig3_gradient.png" alt="Bar charts of gradient magnitude versus transmission for PhysDNet-M and NoPhy" width="1101" height="382" loading="lazy">
+      <figcaption><b>Figure 3. Density-adaptive gradient amplification.</b> PhysDNet-M follows the (t+ε)<sup>−2</sup> scaling and concentrates gradients on low-transmission regions (up to ~694× the NoPhy baseline), unlike the flat NoPhy profile.</figcaption>
+    </figure>
+    <figure>
+      <img src="assets/fig6_gradient_map.jpg" alt="Hazy input, predicted transmission, gradient magnitude map and physics output on a real fog frame" width="1099" height="315" loading="lazy">
+      <figcaption><b>Figure 6. Empirical gradient map on a real STF fog frame.</b> Hazy input, predicted t̂, analytical gradient magnitude |∂Ĵ<sub>phys</sub>/∂t̂|, and physics-restored output. High-gradient regions align spatially with low-transmission regions.</figcaption>
+    </figure>
+  </div>
+
+  <div class="panel">
+    <span class="label">Interactive · Koschmieder model and its inversion</span>
+    <div class="controls">
+      <div class="slider"><label for="beta">scattering coefficient β <output id="betaOut">0.040</output></label><input id="beta" type="range" min="0.005" max="0.1" step="0.005" value="0.04"></div>
+      <div class="slider"><label for="air">airlight A <output id="airOut">0.80</output></label><input id="air" type="range" min="0.5" max="1" step="0.01" value="0.8"></div>
+      <div class="slider"><label for="terr">error in t̂, δ <output id="terrOut">+0.020</output></label><input id="terr" type="range" min="-0.05" max="0.05" step="0.005" value="0.02"></div>
+    </div>
+    <div class="canvases">
+      <figure><canvas id="cvJ" width="256" height="256"></canvas><figcaption>clear scene J</figcaption></figure>
+      <figure><canvas id="cvT" width="256" height="256"></canvas><figcaption>transmission t = e<sup>−βd</sup></figcaption></figure>
+      <figure><canvas id="cvI" width="256" height="256"></canvas><figcaption>hazy I = J·t + A(1−t)</figcaption></figure>
+      <figure><canvas id="cvR" width="256" height="256"></canvas><figcaption>inversion with t̂ = t + δ</figcaption></figure>
+    </div>
+    <div class="readout">
+      <span>mean t <b id="rMeanT">–</b></span>
+      <span>inversion error, near field <b id="rNear">–</b></span>
+      <span>inversion error, far field <b id="rFar">–</b></span>
+      <span>far / near <b id="rRatio">–</b></span>
+    </div>
+    <p style="font-size:.88rem;color:var(--muted)">A fixed error δ in t̂ produces a restoration error δ(A − J)/(t + δ): harmless where t is high, amplified where fog is dense. This t-dependence is why the gradient through the inversion concentrates on dense haze. β covers the paper's 0.005–0.10 sweep. For illustration, J is PhysDNet's restored frame and d is a dense depth map interpolated from this frame's own sparse LiDAR returns (about 4–72 m). Near field: d &lt; 15 m; far field: d &gt; 40 m.</p>
+  </div>
+</section>
+
+<section id="results">
+  <h2>Results</h2>
+
+  <div class="sub">
+    <h3>Restoration quality on Seeing Through Fog</h3>
+    <div class="tablewrap">
+      <table>
+        <caption><b>Table 1.</b> STF validation set (1,299 frames), direct head. PhysDNet-M: mean ± SE over 3 seeds. Best in bold, second underlined.</caption>
+        <thead><tr><th>Method</th><th class="l">Input</th><th>Res.</th><th>Params (M)</th><th>GMACs</th><th>PSNR (dB) ↑</th><th>SSIM ↑</th></tr></thead>
+        <tbody>
+          <tr><td>DCP</td><td class="l">NIR</td><td>256</td><td>0</td><td>—</td><td>17.62</td><td>0.5992</td></tr>
+          <tr class="sep"><td>AOD-Net</td><td class="l">LiDAR+Gated</td><td>256</td><td>0.002</td><td>0.06</td><td>20.95</td><td>0.7329</td></tr>
+          <tr><td>DehazeFormer-T</td><td class="l">NIR</td><td>512</td><td>1.36</td><td>10.92</td><td>33.38</td><td>0.9348</td></tr>
+          <tr><td>FFA-Net</td><td class="l">NIR</td><td>512</td><td>0.77</td><td>98.57</td><td>33.90</td><td>0.9474</td></tr>
+          <tr><td>FFA-Net</td><td class="l">NIR+LiDAR</td><td>512</td><td>0.77</td><td>98.73</td><td>34.79</td><td>0.9516</td></tr>
+          <tr><td>DEA-Net</td><td class="l">NIR</td><td>256</td><td>3.65</td><td>16.42</td><td>33.71</td><td><u>0.9588</u></td></tr>
+          <tr><td>DEA-Net</td><td class="l">LiDAR</td><td>256</td><td>3.65</td><td>16.44</td><td>33.53</td><td>0.9572</td></tr>
+          <tr class="sep ours"><td>PhysDNet-S</td><td class="l">NIR+LiDAR</td><td>256</td><td>0.72</td><td>2.24</td><td>32.80</td><td>0.9331</td></tr>
+          <tr class="ours"><td>PhysDNet-M</td><td class="l">NIR+LiDAR</td><td>256</td><td>2.95</td><td>8.56</td><td><u>35.55±0.07</u></td><td>0.9566±0.0009</td></tr>
+          <tr class="ours"><td>PhysDNet-L</td><td class="l">NIR+LiDAR</td><td>256</td><td>6.59</td><td>18.98</td><td><b>36.46</b></td><td><b>0.9606</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.88rem;color:var(--muted);text-align:center">Best-resolution row per baseline shown; the paper's Table 1 lists every resolution and input combination.</p>
+    <figure class="narrow">
+      <img src="assets/fig2_pareto.png" alt="PSNR versus GMACs scatter plot" width="1116" height="371" loading="lazy">
+      <figcaption><b>Figure 2. Accuracy vs. computational cost on STF.</b> PhysDNet establishes a new Pareto front in the edge-deployable region. PhysDNet-L outperforms FFA-Net by +1.67 dB at 5.2× lower compute; PhysDNet-S retains competitive accuracy at ultra-low compute.</figcaption>
+    </figure>
+  </div>
+
+  <div class="sub">
+    <h3>Physics head ablation</h3>
+    <div class="tablewrap">
+      <table>
+        <caption><b>Table 2.</b> Removing the physics head (NoPhy) from an identical ch64 model.</caption>
+        <thead><tr><th>Variant</th><th>Physics head</th><th>Params (M)</th><th>PSNR (dB)</th><th>SSIM</th><th>mAP (%)</th><th>ΔmAP</th></tr></thead>
+        <tbody>
+          <tr class="ours"><td>PhysDNet-M</td><td>✓</td><td>2.95</td><td><b>35.55</b></td><td><b>0.9569</b></td><td><b>11.70</b></td><td><b>+3.05</b></td></tr>
+          <tr><td>PhysDNet-M NoPhy</td><td>×</td><td>2.91</td><td>30.02</td><td>0.9263</td><td>10.70</td><td>+2.06</td></tr>
+          <tr class="sep"><td><i>Difference</i></td><td></td><td>−0.04</td><td>−5.51</td><td>−0.0306</td><td>−1.00</td><td>−0.99</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <figure>
+      <img src="assets/fig11_dual_head.jpg" alt="Grid of hazy inputs, direct head, physics head, ground truth, transmission and LiDAR depth for eight scenes" width="1096" height="1497" loading="lazy" style="max-width:760px;margin-inline:auto">
+      <figcaption><b>Figure 11. Dual-head outputs on synthetic STF fog.</b> Blue boxes mark dense-haze regions where the physics head shows noise amplification; the direct head suppresses these artifacts by relaxing the rigid physical assumptions.</figcaption>
+    </figure>
+  </div>
+
+  <div class="sub">
+    <h3>Downstream object detection</h3>
+    <div class="tablewrap">
+      <table>
+        <caption><b>Table 3.</b> YOLOv8-M on 426 STF val frames with synthetic fog (β = 0.06). Recovery = ΔmAP / |fog degradation|.</caption>
+        <thead><tr><th>Condition</th><th>AP<sub>veh</sub></th><th>AP<sub>pers</sub></th><th>AP<sub>cyc</sub></th><th>mAP (%)</th><th>ΔmAP</th><th>Recovery</th></tr></thead>
+        <tbody>
+          <tr><td>Clean (upper bound)</td><td>33.95</td><td>7.97</td><td>1.05</td><td>14.33</td><td>—</td><td>—</td></tr>
+          <tr><td>Foggy (β = 0.06)</td><td>18.09</td><td>5.42</td><td>2.42</td><td>8.64</td><td>−5.68</td><td>—</td></tr>
+          <tr class="sep"><td>AOD-Net (NIR)</td><td>15.14</td><td>4.66</td><td>1.27</td><td>7.02</td><td>−1.62</td><td>—</td></tr>
+          <tr><td>DehazeFormer-T (NIR)</td><td>16.37</td><td>5.74</td><td>1.65</td><td>7.92</td><td>−0.72</td><td>—</td></tr>
+          <tr><td>FFA-Net (NIR)</td><td>24.37</td><td>6.30</td><td>1.32</td><td>10.66</td><td>+2.02</td><td>35.6%</td></tr>
+          <tr><td>DEA-Net (NIR)</td><td>25.82</td><td>5.82</td><td>1.66</td><td>11.10</td><td>+2.45</td><td>43.1%</td></tr>
+          <tr class="sep ours"><td>PhysDNet-S</td><td>24.49</td><td>5.94</td><td>1.22</td><td>10.55</td><td>+1.91</td><td>33.6%</td></tr>
+          <tr class="ours"><td>PhysDNet-M</td><td><b>27.65</b></td><td>6.45</td><td>0.99</td><td>11.70</td><td>+3.05</td><td>53.7%</td></tr>
+          <tr class="ours"><td>PhysDNet-L</td><td>27.60</td><td><b>6.70</b></td><td>0.99</td><td><b>11.76</b></td><td><b>+3.12</b></td><td><b>54.9%</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <figure>
+      <img src="assets/fig4_detection.jpg" alt="Detections on foggy image, FFA-Net output, PhysDNet-M output and clean image" width="1108" height="184" loading="lazy">
+      <figcaption><b>Figure 4. Downstream detection after dehazing (β = 0.06).</b> PhysDNet-M recovers scene contrast and enables more accurate detections than FFA-Net. Dashed white: ground truth; solid coloured: predictions.</figcaption>
+    </figure>
+  </div>
+
+  <div class="sub">
+    <h3>Out-of-distribution fog density</h3>
+    <figure class="narrow">
+      <img src="assets/fig12_beta_sweep.png" alt="PSNR versus scattering coefficient beta for all methods" width="1068" height="489" loading="lazy">
+      <figcaption><b>Figure 12. PSNR vs. fog density β</b> (256×256, A = 0.8; green band is the training range). PhysDNet-M keeps the highest PSNR at every density, with a &gt;6 dB margin over the best baseline at β = 0.06, and degrades gracefully outside the training distribution.</figcaption>
+    </figure>
+  </div>
+
+  <div class="sub">
+    <h3>Zero-shot cross-domain generalization</h3>
+    <p class="prose">Trained on STF only and evaluated on O-HAZE and I-HAZE with no LiDAR at test time (NIR→RGB, synthetic→real, outdoor→indoor). PhysDNet-M improves PSNR-Y over DEA-Net by +0.53 dB on O-HAZE and +0.62 dB on I-HAZE; on non-homogeneous NH-HAZE, which violates the Koschmieder assumption, it still leads by +0.15 dB, and removing the physics head costs 0.54 dB.</p>
+    <div class="tablewrap">
+      <table>
+        <caption><b>Table 4.</b> Zero-shot results (luminance and RGB metrics).</caption>
+        <thead>
+          <tr><th></th><th colspan="4" style="text-align:center">O-HAZE (outdoor)</th><th colspan="4" style="text-align:center">I-HAZE (indoor)</th></tr>
+          <tr><th>Method</th><th>PSNR-Y</th><th>SSIM-Y</th><th>PSNR-RGB</th><th>SSIM-RGB</th><th>PSNR-Y</th><th>SSIM-Y</th><th>PSNR-RGB</th><th>SSIM-RGB</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>AOD-Net</td><td>15.11</td><td>0.5000</td><td>14.88</td><td>0.4931</td><td>14.69</td><td>0.5824</td><td>14.51</td><td>0.5724</td></tr>
+          <tr><td>FFA-Net</td><td>19.20</td><td>0.7177</td><td>18.49</td><td>0.6968</td><td>15.82</td><td>0.6521</td><td>15.48</td><td>0.6402</td></tr>
+          <tr><td>DehazeFormer-T</td><td>19.48</td><td>0.6839</td><td>18.81</td><td>0.6641</td><td>15.86</td><td>0.6142</td><td>15.56</td><td>0.6050</td></tr>
+          <tr><td>DEA-Net</td><td>19.92</td><td>0.7042</td><td>19.20</td><td>0.6854</td><td>16.31</td><td>0.6455</td><td>16.02</td><td>0.6362</td></tr>
+          <tr class="sep ours"><td>PhysDNet-S</td><td>19.89</td><td>0.7190</td><td>19.21</td><td>0.6989</td><td>16.81</td><td>0.6895</td><td>16.49</td><td>0.6734</td></tr>
+          <tr class="ours"><td>PhysDNet-M</td><td><b>20.45</b></td><td>0.7461</td><td><b>19.65</b></td><td>0.7253</td><td><b>16.93</b></td><td><b>0.6947</b></td><td><b>16.59</b></td><td><b>0.6795</b></td></tr>
+          <tr><td>PhysDNet-M (NoPhy)</td><td>18.92</td><td>0.7358</td><td>18.38</td><td>0.7174</td><td>16.33</td><td>0.6907</td><td>16.06</td><td>0.6746</td></tr>
+          <tr class="ours"><td>PhysDNet-L</td><td>20.31</td><td><b>0.7488</b></td><td>19.51</td><td><b>0.7279</b></td><td>16.57</td><td>0.6887</td><td>16.24</td><td>0.6756</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <figure>
+      <img src="assets/fig7_ohaze.jpg" alt="O-HAZE example: hazy input, AOD-Net, FFA-Net, PhysDNet-M, ground truth" width="1106" height="244" loading="lazy">
+      <figcaption><b>Figure 7. Zero-shot O-HAZE restoration.</b> Hazy input, AOD-Net, FFA-Net, PhysDNet-M (ours), ground truth. All models trained on STF only.</figcaption>
+    </figure>
+    <figure>
+      <img src="assets/fig8_chroma.jpg" alt="Hazy input, raw PhysDNet-M output, transmission-guided colour output, ground truth" width="1102" height="301" loading="lazy">
+      <figcaption><b>Figure 8. Transmission-guided chrominance recovery.</b> Hazy input, raw PhysDNet-M output, after t̂-guided chrominance transfer, ground truth.</figcaption>
+    </figure>
+  </div>
+
+  <div class="sub">
+    <h3>Real-world fog</h3>
+    <p class="prose">Real STF fog frames have no ground truth, so we measure agreement between the direct and physics heads. Agreement is higher in dense fog, where the gradient amplification concentrates learning.</p>
+    <div class="tablewrap">
+      <table>
+        <caption><b>Table 5.</b> Dual-head consistency on real STF fog.</caption>
+        <thead><tr><th>Metric</th><th>Dense fog</th><th>Light fog</th></tr></thead>
+        <tbody>
+          <tr><td>MSE ↓</td><td>0.0002</td><td>0.0006</td></tr>
+          <tr><td>PSNR (dB) ↑</td><td>37.48</td><td>33.83</td></tr>
+          <tr><td>Pearson r ↑</td><td>0.9947</td><td>0.9912</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="analysis">
+  <h2>Extended Analysis</h2>
+  <p class="prose" style="text-align:center;color:var(--muted)">Additional experiments run during the review period, all with the publicly released checkpoints.</p>
+
+  <div class="sub">
+    <h3>Proposition 1 holds on real data</h3>
+    <div class="two">
+      <figure>
+        <img src="assets/prop1_variance.png" alt="Log-log plot of per-pixel squared error of the physics inversion versus ground-truth transmission, following sigma squared over t squared" width="1140" height="780" loading="lazy">
+        <figcaption><b>Variance correspondence.</b> Per-pixel squared error of Ĵ<sub>phys</sub> binned by ground-truth transmission on STF validation data (known noise σ = 0.01), against the σ²/t² law predicted by Proposition 1.</figcaption>
+      </figure>
+      <div class="prose">
+        <p>Proposition 1 predicts that the inversion's noise variance scales as <span class="mono">Var[Ĵ<sub>phys</sub>] = σ²/t² + O(δ)</span>, the same t<sup>−2</sup> structure that drives the gradient amplification. The measured error follows this law across two orders of magnitude, with a <b>log-log correlation of r = 0.981</b>. The small uniform offset above the line matches the O(δ) estimation term.</p>
+        <p>This also explains the noise visible in the physics head at low transmission (Fig. 11). It is the predicted variance structure, and the deployed direct head does not inherit it.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub">
+    <h3>When does gradient amplification help?</h3>
+    <p class="prose">We ran matched no-physics (NoPhy) controls on two further inverse problems and on RGB-only data. The mechanism helps when the inverted physical parameter is <b>anchored</b> by a privileged measurement such as depth. Without an anchor it is neutral, and it never hurts.</p>
+    <div class="tablewrap">
+      <table>
+        <caption><b>Mechanism scope.</b> Physics variant vs. matched NoPhy twin, same architecture and budget.</caption>
+        <thead><tr><th>Task</th><th class="l">Inverted model</th><th class="l">Anchored?</th><th class="l">Physics vs. NoPhy</th></tr></thead>
+        <tbody>
+          <tr class="ours"><td>Dehazing, STF (NIR + sparse LiDAR)</td><td class="l">t = e<sup>−βd</sup></td><td class="l">yes, LiDAR</td><td class="l"><b>+5.51 dB</b> PSNR, +0.99 pp mAP</td></tr>
+          <tr class="ours"><td>Underwater restoration (NYU-v2 RGBD synth.)</td><td class="l">per-channel t<sub>c</sub> = e<sup>−β<sub>c</sub>d</sup></td><td class="l">yes, sparse depth</td><td class="l">+0.38 dB overall, +0.82 dB mid-t bin, +0.60 dB red channel</td></tr>
+          <tr class="ours"><td>Low-light, LOL-v2-Real (100 images)</td><td class="l">Retinex R = I / (L + ε)</td><td class="l">yes</td><td class="l">+0.5 to 0.6 dB, SSIM 0.906 vs 0.897</td></tr>
+          <tr class="sep"><td>Dehazing, RESIDE-6K (RGB only)</td><td class="l">t = e<sup>−βd</sup></td><td class="l">no</td><td class="l">tie, 28.4 vs 28.6 dB</td></tr>
+          <tr><td>Low-light, LOL-v1 (15 images)</td><td class="l">Retinex</td><td class="l">no</td><td class="l">inconclusive, noise-dominated test set</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.88rem;color:var(--muted);text-align:center">Low-light enhancement is the A → 0 special case of Eq. 5.</p>
+  </div>
+
+  <div class="sub">
+    <h3>Robust to missing LiDAR and to RGB-only input</h3>
+    <div class="two">
+      <figure>
+        <img src="assets/fig9_lidar_sparsity.png" alt="PSNR versus percentage of LiDAR points dropped for PhysDNet S, M, L and NoPhy" width="1110" height="500" loading="lazy">
+        <figcaption><b>Figure 9. PSNR vs. LiDAR dropout.</b> All variants degrade gracefully as LiDAR points are removed. At 0% density (NIR only) PhysDNet-M keeps 29.70 dB, still <b>+4.10 dB</b> above NoPhy. The dotted line marks the training-time density (~3% of pixels).</figcaption>
+      </figure>
+      <div class="prose">
+        <p><b>RGB-only training.</b> PhysDNet-M trained from scratch on RESIDE-6K with zero depth input reaches <b>28.4 dB / 0.965 SSIM</b> on the full 1,000-image SOTS-mix test set with the same recipe, and was still converging at the 300-epoch budget. It keeps the NPU-compatible operator set.</p>
+        <p><b>Depth branch folds away.</b> With zero depth input the LiDAR branch's activations become constants that fold into the network. The outputs are bit-exact and compute drops from 8.56 to <b>6.33 GMACs (−26%)</b> for RGB-only deployment.</p>
+        <p><b>The training regime drives transfer.</b> Zero-shot on O-HAZE, the STF-trained model beats its colour-native RESIDE-trained sibling by about 3 dB PSNR-RGB (19.65 vs 16.58).</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub">
+    <h3>All weather conditions, day and night</h3>
+    <p class="prose">Dual-head consistency on real STF captures (real camera, real weather-attenuated LiDAR, n = 250 per split, full resolution) across every official split, including rain and snow, which were not in the paper.</p>
+    <div class="tablewrap">
+      <table>
+        <caption><b>Weather robustness.</b> Direct ↔ physics head agreement, PSNR (dB) / Pearson r.</caption>
+        <thead><tr><th>Condition</th><th>Day</th><th>Night</th></tr></thead>
+        <tbody>
+          <tr><td>Clear</td><td>39.2 / 0.998</td><td>33.4 / 0.993</td></tr>
+          <tr><td>Light fog</td><td>40.1 / 0.999</td><td>34.7 / 0.994</td></tr>
+          <tr><td>Dense fog</td><td><b>40.3 / 0.999</b></td><td>34.8 / 0.995</td></tr>
+          <tr><td>Snow</td><td>39.5 / 0.997</td><td><b>35.4 / 0.994</b></td></tr>
+          <tr><td>Rain</td><td>35.1 / 0.995</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="prose">Agreement is highest in dense fog, as the density-adaptive mechanism predicts. Night scenes lose a uniform ~5 dB with r ≥ 0.993, because active light sources locally violate the global-airlight assumption; the direct head absorbs this.</p>
+    <div class="weather">
+      <figure><img src="assets/weather/dense_fog_day_0.jpg" alt="Dense fog, day: input, direct head, physics inversion" width="1400" height="268" loading="lazy"><figcaption>Dense fog, day</figcaption></figure>
+      <figure><img src="assets/weather/light_fog_night_0.jpg" alt="Light fog, night: input, direct head, physics inversion" width="1400" height="268" loading="lazy"><figcaption>Light fog, night</figcaption></figure>
+      <figure><img src="assets/weather/snow_night_0.jpg" alt="Snow, night: input, direct head, physics inversion" width="1400" height="268" loading="lazy"><figcaption>Snow, night</figcaption></figure>
+      <figure><img src="assets/weather/rain_0.jpg" alt="Rain: input, direct head, physics inversion" width="1400" height="268" loading="lazy"><figcaption>Rain</figcaption></figure>
+    </div>
+    <p style="font-size:.88rem;color:var(--muted);text-align:center">Each strip: real input, direct head, physics inversion.</p>
+  </div>
+
+  <div class="sub">
+    <h3>Real-world haze without labels (RTTS)</h3>
+    <p class="prose">Trained on monochrome NIR, PhysDNet's raw output on RGB haze is nearly grey. We replace the paper's heuristic colour transfer with label-free self-supervised adaptation on unpaired real haze. The parameter-free physics inversion acts as a <b>colour teacher</b>: it is closed-form algebra on the coloured input, so its output is inherently coloured. The recipe adds Koschmieder re-composition, dual-head consistency, a dark-channel prior and synthetic replay, needs no architecture change, and takes 5 epochs (about 13 minutes on one 16 GB GPU).</p>
+    <div class="rtts">
+      <div class="rtts-h">Hazy input</div><div class="rtts-h">Zero-shot (STF)</div><div class="rtts-h">+ URHI adaptation</div><div class="rtts-h">+ RTTS adaptation, physics head</div>
+      <img src="assets/rtts/0_hazy.jpg" alt="RTTS hazy input 1" loading="lazy"><img src="assets/rtts/0_base.jpg" alt="Zero-shot output 1" loading="lazy"><img src="assets/rtts/0_urhi.jpg" alt="URHI-adapted output 1" loading="lazy"><img src="assets/rtts/0_rttsphys.jpg" alt="RTTS-adapted physics output 1" loading="lazy">
+      <img src="assets/rtts/1_hazy.jpg" alt="RTTS hazy input 2" loading="lazy"><img src="assets/rtts/1_base.jpg" alt="Zero-shot output 2" loading="lazy"><img src="assets/rtts/1_urhi.jpg" alt="URHI-adapted output 2" loading="lazy"><img src="assets/rtts/1_rttsphys.jpg" alt="RTTS-adapted physics output 2" loading="lazy">
+      <img src="assets/rtts/2_hazy.jpg" alt="RTTS hazy input 3" loading="lazy"><img src="assets/rtts/2_base.jpg" alt="Zero-shot output 3" loading="lazy"><img src="assets/rtts/2_urhi.jpg" alt="URHI-adapted output 3" loading="lazy"><img src="assets/rtts/2_rttsphys.jpg" alt="RTTS-adapted physics output 3" loading="lazy">
+    </div>
+    <div class="tablewrap">
+      <table>
+        <caption><b>RTTS</b> (1,297 real hazy images, full resolution). Detection: YOLOv8-M mAP@0.5 against RTTS boxes.</caption>
+        <thead><tr><th>Condition</th><th>Colorfulness</th><th>NIQE ↓</th><th>BRISQUE ↓</th><th>mAP@0.5</th></tr></thead>
+        <tbody>
+          <tr><td>Hazy (unprocessed)</td><td>15.70</td><td>5.35</td><td>38.3</td><td>48.14</td></tr>
+          <tr class="sep"><td>PhysDNet-M, zero-shot STF</td><td>0.03</td><td>4.90</td><td>34.7</td><td>46.28</td></tr>
+          <tr class="ours"><td>+ URHI adaptation (unpaired, no labels)</td><td>12.83</td><td><b>4.74</b></td><td><b>33.4</b></td><td>44.82</td></tr>
+          <tr class="ours"><td>+ RTTS-train adaptation, physics head</td><td>16.49</td><td>5.11</td><td>36.5</td><td><b>48.21</b></td></tr>
+          <tr><td>PhysDNet-M, RESIDE-6K-trained</td><td><b>19.45</b></td><td>4.81</td><td>33.6</td><td>47.71</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="prose">URHI adaptation restores colour (0.03 → 12.8) and gives the best no-reference quality of all conditions. Adapted on RTTS's own unlabeled train split, the physics head matches or exceeds the raw hazy input on every measured axis. We report the trade-offs too. RTTS haze is mostly light and COCO-pretrained YOLO is already haze-robust, so direct-head outputs lower mAP there. The URHI-adapted model also gives up 5.1 dB on O-HAZE's dense machine haze, so Table 4 keeps the base model. Colour fidelity inherits the airlight estimate, so a mild warm shift can appear under strongly tinted light.</p>
+  </div>
+</section>
+
+<section id="deployment">
+  <h2>Edge Deployment</h2>
+  <p class="prose">PhysDNet uses only NPU-friendly operators (depthwise-separable convolutions, BatchNorm, ReLU6, bilinear upsampling). Under standard ONNX export and vendor INT8 post-training quantization, only PhysDNet and AOD-Net compile for the fixed-function NPU, and AOD-Net's restoration quality (20.95 dB) is insufficient for deployment.</p>
+  <div class="tablewrap">
+    <table>
+      <caption><b>Table 6.</b> 256×256, batch 1. Fixed-function 26 TOPS NPU (&lt;4 W TDP) uses INT8 PTQ; Jetson Orin Nano uses TensorRT FP16. ✗ = compilation failure.</caption>
+      <thead>
+        <tr><th></th><th></th><th></th><th colspan="2" style="text-align:center">Fixed-function NPU</th><th colspan="2" style="text-align:center">Jetson Orin Nano</th></tr>
+        <tr><th>Model</th><th>Params (M)</th><th>GMACs</th><th>Compile</th><th>FPS</th><th>FPS</th><th>Power (W)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>AOD-Net LiDAR</td><td>0.002</td><td>0.06</td><td>✓</td><td><b>1220</b></td><td>327.0</td><td>4.94</td></tr>
+        <tr><td>FFA-Net LiDAR</td><td>0.77</td><td>24.68</td><td>✗</td><td>—</td><td>46.9</td><td>8.21</td></tr>
+        <tr><td>DehazeFormer-T LiDAR</td><td>1.36</td><td>2.73</td><td>✗</td><td>—</td><td>47.1</td><td>12.38</td></tr>
+        <tr><td>DEA-Net LiDAR</td><td>3.65</td><td>16.44</td><td>✗</td><td>—</td><td>28.5</td><td>10.17</td></tr>
+        <tr class="sep ours"><td>PhysDNet-S</td><td>0.72</td><td>2.24</td><td>✓</td><td><b>99</b></td><td><b>108.3</b></td><td>13.45</td></tr>
+        <tr class="ours"><td>PhysDNet-M</td><td>2.95</td><td>8.56</td><td>✓</td><td>45</td><td>58.5</td><td>12.38</td></tr>
+        <tr class="ours"><td>PhysDNet-L</td><td>6.59</td><td>18.98</td><td>✓</td><td>29</td><td>38.8</td><td>11.80</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="sub">
+    <h3>Recent heavyweight and diffusion methods, measured</h3>
+    <p class="prose">The paper excludes 2024–2026 heavyweight and diffusion dehazers as outside the edge budget. We measured them under the same protocol: fvcore at 256², Jetson Orin Nano in MAXN (25 W) mode, TensorRT FP16, 50 warm-up + 300 timed iterations, engine build excluded.</p>
+    <div class="tablewrap">
+      <table>
+        <caption><b>Excluded methods on Jetson Orin Nano.</b> NFE = network evaluations per image.</caption>
+        <thead><tr><th>Method</th><th>Params</th><th>GMACs / call</th><th>NFE</th><th>Effective GMACs</th><th class="l">Jetson, TRT FP16</th></tr></thead>
+        <tbody>
+          <tr><td>UVM-Net (official)</td><td>1004 M</td><td>250.9</td><td>1</td><td>250.9</td><td class="l">fails (out of memory)</td></tr>
+          <tr><td>DFFNet<sup>‡</sup></td><td>17.8 M</td><td>61.3</td><td>1</td><td>61.3</td><td class="l">no ONNX (2-D FFT); 157 ms eager</td></tr>
+          <tr><td>Ksformer<sup>‡</sup></td><td>5.5 M</td><td>109.0</td><td>1</td><td>109.0</td><td class="l">360 ms (2.8 FPS)</td></tr>
+          <tr><td>DehazeDDPM (official)</td><td>97.8 M</td><td>90.2</td><td>50</td><td>4509</td><td class="l">3.1 s / image (0.32 FPS)</td></tr>
+          <tr><td>RSHazeDiff (official)</td><td>109.7 M</td><td>8.0</td><td>1690</td><td>13523</td><td class="l">17.0 s / image (0.06 FPS)</td></tr>
+          <tr class="sep ours"><td>PhysDNet-L</td><td>6.59 M</td><td>18.98</td><td>1</td><td>18.98</td><td class="l"><b>25.8 ms (38.8 FPS)</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.88rem;color:var(--muted)"><sup>‡</sup>Faithful re-implementations calibrated to the published parameter budgets; no official code exists. Even PhysDNet-L needs 3.2× less compute than the lightest excluded method, and those methods' INT8 behaviour, required at NPU power budgets, is uncharacterised.</p>
+  </div>
+  <figure class="narrow">
+    <img src="assets/hailo_sample.png" alt="Hazy input, NPU output at 38.1 dB, ground truth" width="1718" height="600" loading="lazy">
+    <figcaption><b>Figure 5. INT8 NPU inference on a representative STF sample (β = 0.01).</b> Hazy input, PhysDNet-M restored on the fixed-function NPU (38.1 dB), and ground truth.</figcaption>
+  </figure>
+</section>
+
+<section id="bibtex">
+  <div class="bibbar"><h2 style="text-align:left">BibTeX</h2><button class="chip" id="copyBib">Copy</button></div>
+<pre class="bib" id="bib">@inproceedings{dhahri2026physdnet,
+  title     = {PhysDNet: Physics-Driven Gradient Amplification for
+               Real-Time Image Dehazing},
+  author    = {Dhahri, Rayen and Sun, Lei and Kartsch Morinigo, Victor Javier
+               and Pagnoux, Alice and Benini, Luca and Paudel, Danda Pani
+               and Van Gool, Luc},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2026}
+}</pre>
+</section>
+
+<footer>
+  <p>Data: <a href="https://github.com/princeton-computational-imaging/SeeingThroughFog" target="_blank" rel="noopener">Seeing Through Fog</a> (Bijelic et al., CVPR 2020).</p>
+</footer>
+</div>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs = {}, parent) => {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+};
+
+/* teaser */
+const cmp = $("#cmp"), rng = $("#cmpRange");
+rng.addEventListener("input", () => cmp.style.setProperty("--split", rng.value + "%"));
+$("#lidarToggle").addEventListener("change", e => cmp.classList.toggle("show-lidar", e.target.checked));
+
+/* architecture explorer */
+const svg = $("#archSvg"), gE = $("#edges"), gN = $("#nodes");
+const C = 64, L = [210, 330, 450, 570], nodes = {}, edges = [];
+const sh = k => `${C * 2 ** (k - 1)} × H/${2 ** (k - 1)} × W/${2 ** (k - 1)}`;
+const INFO = {
+  inRGB: ["Hazy NIR image I", "3 × 256 × 256", "Time-gated near-infrared frame. Gating rejects nearby backscatter at the sensor level. The same tensor is reused by the physics inversion.", "I(x) = J(x)·t(x) + A·(1 − t(x))\nt(x) = exp(−β d(x))"],
+  inDep: ["Sparse LiDAR depth + mask", "2 × 256 × 256", "LiDAR points projected into the image give sparse depth D_s and a binary validity mask M. Sparse LiDAR is used unmodified at train and test time; there is no depth completion.", "M(x) = 1 where a LiDAR return lands, else 0"],
+  rgb: k => [`NIR encoder, stage ${k}`, sh(k), "Depthwise-separable convolutions, BatchNorm and ReLU6 with a residual shortcut, then 2× max-pooling. Chosen for fixed-function NPU compatibility.", "[DWConv3×3 → BN → PWConv1×1 → BN → ReLU6] ×2 + shortcut"],
+  dep: k => [`LiDAR encoder, stage ${k}`, sh(k), "Same four-stage design as the NIR branch, fed the 2-channel (D_s, M) input, so each scale has an aligned depth feature map.", "[DWConv3×3 → BN → PWConv1×1 → BN → ReLU6] ×2 + shortcut"],
+  gate: k => [`Gated fusion g${k}`, sh(k), "A learned 1×1 gate mixes image and depth features per pixel and channel. It is mask-aware: where LiDAR is absent (M = 0) the depth features carry no signal and the gate learns to rely on the image branch." + (k < 4 ? " The fused map is also the skip connection to the decoder." : " Stage 4 is the bottleneck."), "g = σ(W_g [f_img ; f_depth])\nf_fused = g ⊙ f_img + (1 − g) ⊙ f_depth"],
+  attn: ["SE bottleneck", sh(4), "A Squeeze-and-Excitation channel-attention block applied once after fusion at the bottleneck. Its globally pooled features also produce the airlight estimate Â.", "z_bot ← z_bot ⊙ σ(W₂ ReLU(W₁ GAP(z_bot)))"],
+  dec: k => [`Decoder stage ${k}`, sh(k), `Bilinear 2× upsampling, concatenation with the fused skip from g${k}, and a conv block. One decoder is shared by both heads.`, `x = Block([Up₂(x) ; f_fused,${k}])`],
+  direct: ["Direct head → Ĵ_dir (deployed)", "3 × H × W", "A convolutional projection with sigmoid maps decoder features to the image. It makes no assumption about image formation, so it can correct Koschmieder violations (non-uniform airlight, multiple scattering, sensor artifacts). It is the only head used at inference.", "Ĵ_dir(x) ∈ [0, 1]³"],
+  phys: ["Physics head → t̂, Â (training only)", "t̂: 1 × H × W,  Â: 3", "Two auxiliary sub-heads predict per-pixel transmission and global airlight from the shared features. Bounding t̂ to [0.05, 0.95] prevents collapse and numerical instability.", "t̂ = t_min + (t_max − t_min)·σ(W_t ∗ z + b_t)\nÂ = σ(W_A · GAP(z_bot) + b_A)"],
+  inv: ["Koschmieder inversion → Ĵ_phys", "no learnable parameters", "Inverts the scattering model in closed form. Backpropagating through it scales the gradient reaching t̂ by (t̂+ε)⁻², so dense-haze pixels dominate the learning signal: density-adaptive gradient amplification.", "Ĵ_phys = clamp((I − Â(1 − t̂)) / (t̂ + ε), 0, 1)\n∂Ĵ_phys/∂t̂ = (Â − I) / (t̂ + ε)²,  ε = 1e-4"],
+  loss: ["Physics-anchored objective", "scalar", "The physics-reconstruction loss anchors the shared representation in a physically meaningful space, while the reconstruction loss on Ĵ_dir lets the direct head learn residual corrections beyond Koschmieder. A physics-aware contrastive term uses physics-head artifacts as hard negatives.", "L = L_rec(Ĵ_dir) + L_pr(Ĵ_phys) + L_contra + …"],
+};
+function box(key, x, y, w, h, title, sub, cls, info) {
+  const g = el("g", { class: "node " + cls, tabindex: 0, role: "button", "aria-label": title }, gN);
+  el("rect", { x, y, width: w, height: h, rx: 6 }, g);
+  el("text", { x: x + w / 2, y: y + h / 2 - (sub ? 3 : -4), "text-anchor": "middle" }, g).textContent = title;
+  if (sub) el("text", { x: x + w / 2, y: y + h / 2 + 12, "text-anchor": "middle", class: "sub" }, g).textContent = sub;
+  nodes[key] = { g, info };
+}
+function circ(key, cx, cy, r, title, info) {
+  const g = el("g", { class: "node gate", tabindex: 0, role: "button", "aria-label": title }, gN);
+  el("circle", { cx, cy, r }, g);
+  el("text", { x: cx, y: cy + 4, "text-anchor": "middle" }, g).textContent = title;
+  nodes[key] = { g, info };
+}
+function edge(d, cls = "", step = 0, label, lx, ly, lcls = "") {
+  const p = el("path", { d, class: "edge " + cls, "marker-end": "url(#ah)" }, gE);
+  p.dataset.step = step; edges.push(p);
+  if (label) el("text", { x: lx, y: ly, class: "elabel " + lcls }, gE).textContent = label;
+}
+box("inRGB", 10, 30, 110, 50, "Hazy NIR  I", "3×256×256", "rgb", INFO.inRGB);
+box("inDep", 10, 130, 110, 50, "Sparse LiDAR", "D_s, M · 2×256×256", "dep dep-branch", INFO.inDep);
+edge("M120 55 H138", "", 0);
+edge("M120 155 H188", "dep dep-branch", 0);
+L.forEach((x, i) => {
+  const k = i + 1;
+  box("rgb" + k, x - 70, 30, 90, 50, "NIR enc " + k, (C * 2 ** i) + " ch", "rgb", INFO.rgb(k));
+  box("dep" + k, x - 20, 130, 90, 50, "LiDAR enc " + k, (C * 2 ** i) + " ch", "dep dep-branch", INFO.dep(k));
+  circ("gate" + k, x, 250, 18, "g" + k, INFO.gate(k));
+  edge(`M${x - 35} 80 V224 L${x - 12} 238`, "", k);
+  edge(`M${x + 45} 180 V224 L${x + 12} 238`, "dep dep-branch", k);
+  if (k < 4) {
+    edge(`M${x + 20} 55 H${x + 48}`, "", k, "↓2", x + 26, 48);
+    edge(`M${x + 70} 155 H${x + 98}`, "dep dep-branch", k);
+  }
+});
+box("attn", 525, 330, 90, 50, "SE bottleneck", "channel attn.", "dec", INFO.attn);
+edge("M570 268 V328", "", 5);
+[3, 2, 1].forEach(k => {
+  const x = L[k - 1];
+  box("dec" + k, x - 45, 330, 90, 50, "Decoder " + k, (C * 2 ** (k - 1)) + " ch", "dec", INFO.dec(k));
+  edge(`M${x} 268 V328`, "skip", 5 + (4 - k));
+  const from = k === 3 ? 525 : L[k] - 45;
+  edge(`M${from} 355 H${x + 47}`, "", 5 + (4 - k), "↑2", from - 22, 348);
+});
+box("direct", 20, 440, 150, 56, "Direct head → Ĵ_dir", "deployed", "dir", INFO.direct);
+box("phys", 200, 440, 160, 56, "Physics head", "t̂, Â · training only", "phys", INFO.phys);
+box("inv", 390, 440, 150, 56, "Koschmieder⁻¹", "(I − Â(1−t̂)) / (t̂+ε)", "phys", INFO.inv);
+box("loss", 570, 440, 100, 56, "Objective", "L_rec + L_pr + …", "phys", INFO.loss);
+edge("M190 380 L110 438", "", 9);
+edge("M230 380 L270 438", "", 9);
+edge("M360 468 H388", "", 10);
+edge("M540 468 H568", "", 11);
+edge("M95 496 V520 H620 V498", "", 11);
+edge("M615 355 H655 V418 H300 V438", "skip", 9, "Â from GAP(z_bot)", 420, 412);
+edge("M465 498 V536 H6 V300 H130 V358 H163", "aux", 12, "gradient amplification ∝ (t̂+ε)⁻²", 20, 532, "red");
+
+const info = $("#info");
+function select(key) {
+  Object.values(nodes).forEach(n => n.g.classList.remove("active"));
+  const n = nodes[key]; if (!n) return;
+  n.g.classList.add("active");
+  const [title, shape, text, formula] = n.info;
+  info.innerHTML = '<h4></h4><span class="shape"></span><p></p><div class="formula"></div>';
+  info.querySelector("h4").textContent = title;
+  info.querySelector(".shape").textContent = shape;
+  info.querySelector("p").textContent = text;
+  info.querySelector(".formula").textContent = formula;
+}
+Object.entries(nodes).forEach(([k, n]) => {
+  n.g.addEventListener("click", () => select(k));
+  n.g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(k); } });
+});
+select("inv");
+
+let timer = null;
+$("#traceBtn").addEventListener("click", e => {
+  const b = e.currentTarget, on = b.getAttribute("aria-pressed") !== "true";
+  b.setAttribute("aria-pressed", on);
+  clearInterval(timer);
+  edges.forEach(p => p.classList.remove("flow"));
+  if (!on) return;
+  let s = 0;
+  const tick = () => {
+    edges.forEach(p => p.classList.toggle("flow", +p.dataset.step === s && !(svg.classList.contains("nolidar") && p.classList.contains("dep"))));
+    s = (s + 1) % 13;
+  };
+  tick(); timer = setInterval(tick, 650);
+});
+$("#dropBtn").addEventListener("click", e => {
+  const b = e.currentTarget, on = b.getAttribute("aria-pressed") !== "true";
+  b.setAttribute("aria-pressed", on);
+  svg.classList.toggle("nolidar", on);
+  if (on) {
+    select("gate1");
+    info.querySelector("p").textContent = "With no LiDAR returns (M = 0 everywhere) the depth branch carries no geometric signal and the mask-aware gates fall back to the image branch. In the paper's sparsity study (App. N), PhysDNet-M still retains a +4.10 dB advantage at 0% depth.";
+  } else select("inv");
+});
+
+/* Koschmieder playground */
+const SCENE = "data:image/jpeg;base64,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";
+const S = 256;
+const ctx = id => $(id).getContext("2d");
+const xJ = ctx("#cvJ"), xT = ctx("#cvT"), xI = ctx("#cvI"), xR = ctx("#cvR");
+const DEPTH = "data:image/png;base64,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"; // dense depth from this frame's LiDAR returns (interpolated, metres = value/255*120)
+const depth = new Float32Array(S * S);
+let J = null;
+const img = new Image();
+img.onload = () => {
+  xJ.drawImage(img, 0, 0, S, S);
+  try {
+    const d = xJ.getImageData(0, 0, S, S).data;
+    J = new Float32Array(S * S);
+    for (let i = 0; i < S * S; i++) J[i] = (0.299 * d[i * 4] + 0.587 * d[i * 4 + 1] + 0.114 * d[i * 4 + 2]) / 255;
+    loadDepth();
+  } catch (err) { console.error("Koschmieder demo: cannot read pixels", err); }
+};
+function loadDepth() {
+  const di = new Image();
+  di.onload = () => {
+    const c = document.createElement("canvas"); c.width = c.height = S;
+    const cx = c.getContext("2d"); cx.drawImage(di, 0, 0, S, S);
+    const p = cx.getImageData(0, 0, S, S).data;
+    for (let i = 0; i < S * S; i++) depth[i] = Math.max(2, p[i * 4] / 255 * 120);
+    render();
+  };
+  di.src = DEPTH;
+}
+img.src = SCENE; // embedded so pixel reads work on any host
+
+const paint = (c, arr, map) => {
+  const im = c.createImageData(S, S);
+  for (let i = 0; i < S * S; i++) {
+    const [r, g, b] = map(arr[i]);
+    im.data[i * 4] = r; im.data[i * 4 + 1] = g; im.data[i * 4 + 2] = b; im.data[i * 4 + 3] = 255;
+  }
+  c.putImageData(im, 0, 0);
+};
+const gray = v => { const u = Math.max(0, Math.min(255, v * 255)); return [u, u, u]; };
+const magma = v => { // compact magma-like ramp for t
+  const s = [[0, 0, 4], [81, 18, 124], [183, 55, 121], [252, 137, 97], [252, 253, 191]];
+  const p = Math.max(0, Math.min(0.9999, v)) * 4, i = Math.floor(p), f = p - i;
+  return s[i].map((c, j) => c + (s[i + 1][j] - c) * f);
+};
+function render() {
+  if (!J) return;
+  const beta = +$("#beta").value, A = +$("#air").value, dl = +$("#terr").value;
+  $("#betaOut").textContent = beta.toFixed(3);
+  $("#airOut").textContent = A.toFixed(2);
+  $("#terrOut").textContent = (dl >= 0 ? "+" : "") + dl.toFixed(3);
+  const T = new Float32Array(S * S), I = new Float32Array(S * S), R = new Float32Array(S * S);
+  let sT = 0, eN = 0, nN = 0, eF = 0, nF = 0;
+  for (let i = 0; i < S * S; i++) {
+    const t = Math.exp(-beta * depth[i]);
+    T[i] = t; sT += t;
+    I[i] = J[i] * t + A * (1 - t);
+    const th = Math.min(0.95, Math.max(0.05, t + dl));
+    R[i] = (I[i] - A * (1 - th)) / (th + 1e-4);
+    const err = Math.abs(Math.max(0, Math.min(1, R[i])) - J[i]);
+    if (depth[i] < 15) { eN += err; nN++; }
+    if (depth[i] > 40) { eF += err; nF++; }
+  }
+  paint(xT, T, magma); paint(xI, I, gray); paint(xR, R, gray);
+  const en = eN / nN, ef = eF / nF;
+  $("#rMeanT").textContent = (sT / (S * S)).toFixed(2);
+  $("#rNear").textContent = (en * 255).toFixed(1) + " / 255";
+  $("#rFar").textContent = (ef * 255).toFixed(1) + " / 255";
+  $("#rRatio").textContent = en > 1e-4 ? (ef / en).toFixed(1) + "×" : "–";
+}
+["#beta", "#air", "#terr"].forEach(s => $(s).addEventListener("input", render));
+
+/* BibTeX copy */
+$("#copyBib").addEventListener("click", e => {
+  const b = e.currentTarget;
+  const done = () => { b.textContent = "Copied"; setTimeout(() => (b.textContent = "Copy"), 1500); };
+  const fallback = () => { const r = document.createRange(); r.selectNodeContents($("#bib")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Selected, press Ctrl+C"; };
+  try { navigator.clipboard.writeText($("#bib").textContent).then(done, fallback); } catch (err) { fallback(); }
+});
+})();
+</script>
+</body>
+</html>
