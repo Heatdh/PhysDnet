@@ -1,0 +1,33 @@
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+
+# Datasets and runs
+data/
+runs/
+results/
+wandb/
+figures/
+*.log
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local env
+.env
+*.egg-info/
+build/
+dist/
+
+# Sensitive: STF download URLs are user-specific (signed AWS S3 links).
+# Each user must request their own from the dataset authors.
+data_download.json
+
+
+# Weights (distributed separately)
+checkpoints/
+onnx/

@@ -1,0 +1,53 @@
+data:
+  stf_root: "data/stf/SeeingThroughFog"
+  meta_dir: "data/stf/meta"
+  train_timestamps: null
+  val_timestamps: null
+  val_ratio: 0.1
+  split_seed: 42
+  train_weather_filter: ["clear", "overcast"]
+  val_weather_filter: ["clear", "overcast"]
+  crop_size: [256, 256]
+  beta_range: [0.005, 0.04]
+  airlight_range: [0.7, 1.0]
+  max_depth: 120.0
+  augment: false
+
+model:
+  baseline: "dark_channel_prior"
+  mode: "rgb"
+  patch_size: 15
+  omega: 0.95
+  t_min: 0.1
+  guided_radius: 20
+  guided_eps: 1.0e-3
+  airlight_top_ratio: 1.0e-3
+
+training:
+  epochs: 0
+  batch_size: 4
+  lr: 2.0e-4
+  weight_decay: 0.0
+  seed: 42
+  num_workers: 6
+  grad_clip: 1.0
+  eta_min: 1.0e-6
+  warmup_epochs: 0
+  w_rec: 1.0
+  w_perc: 0.05
+  w_grad: 0.5
+  w_phys: 0.0
+  w_phys_rec: 0.0
+  w_smooth: 0.0
+  w_trans: 0.0
+  use_perceptual: true
+  runs_dir: "runs"
+  log_every: 20
+  val_every: 1
+  vis_every: 1
+  n_vis_samples: 8
+
+wandb:
+  enabled: true
+  project: "lidar-dehazing"
+  tags: ["stf", "baseline", "dark_channel_prior", "rgb", "traditional"]

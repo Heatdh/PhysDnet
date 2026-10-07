@@ -1,0 +1,52 @@
+# ============================================================================
+# STF Training — v3b seed2: PhysDNet-M (ch64) — seed run 2 of 2
+# ============================================================================
+# Identical to v3b but with training seed=2 for std-error estimation.
+# Val seed (42) and split seed (42) are unchanged.
+
+data:
+  stf_root: "data/stf/SeeingThroughFog"
+  meta_dir: "data/stf/meta"
+  train_timestamps: null
+  val_timestamps: null
+  val_ratio: 0.1
+  split_seed: 42
+  train_weather_filter: ["clear", "overcast"]
+  val_weather_filter: ["clear", "overcast"]
+  crop_size: [256, 256]
+  beta_range: [0.005, 0.04]
+  airlight_range: [0.7, 1.0]
+  max_depth: 120.0
+  augment: true
+
+model:
+  variant: "robust"
+  base_ch: 64
+
+training:
+  seed: 456
+  epochs: 500
+  batch_size: 16
+  lr: 2.0e-4
+  weight_decay: 1.0e-4
+  num_workers: 12
+  grad_clip: 1.0
+  scheduler: "cosine"
+  eta_min: 1.0e-6
+  warmup_epochs: 10
+  w_rec: 1.0
+  w_perc: 0.05
+  w_grad: 0.5
+  w_phys: 0.2
+  w_phys_rec: 1.0
+  w_smooth: 0.1
+  w_trans: 2.0
+  w_fft: 0.1
+  w_contrast: 0.1
+  w_contrast_start_epoch: 185
+  use_perceptual: true
+
+wandb:
+  enabled: true
+  project: "lidar-dehazing"
+  tags: ["stf", "robust", "v3b", "ch64", "seed2", "fft", "ctr@185"]

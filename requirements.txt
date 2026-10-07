@@ -1,0 +1,25 @@
+torch>=2.0
+torchvision>=0.15
+numpy
+Pillow
+PyYAML
+tqdm
+scikit-image
+matplotlib
+einops
+opencv-python
+scipy
+
+# Logging (optional)
+wandb
+
+# ONNX export
+onnx
+onnxruntime
+onnxsim
+
+# Downstream detection
+ultralytics
+
+# No-reference perceptual metrics (NIQE / BRISQUE)
+pyiqa

@@ -1,0 +1,54 @@
+# ============================================================================
+# Baseline: AOD-Net (Li et al., ICCV 2017)
+# ============================================================================
+# Extremely lightweight (~1.8K params RGB-only).
+# Use --mode flag to select: rgb | lidar | lidar_physics
+
+data:
+  stf_root: "data/stf/SeeingThroughFog"
+  meta_dir: "data/stf/meta"
+  train_timestamps: null
+  val_timestamps: null
+  val_ratio: 0.1
+  split_seed: 42
+  train_weather_filter: ["clear", "overcast"]
+  val_weather_filter: ["clear", "overcast"]
+  crop_size: [256, 256]
+  beta_range: [0.005, 0.04]
+  airlight_range: [0.7, 1.0]
+  max_depth: 120.0
+  augment: true
+
+model:
+  baseline: "aod_net"
+  mode: "rgb"              # overridden by --mode CLI
+
+training:
+  epochs: 100
+  batch_size: 16           # tiny model allows large batch
+  lr: 2.0e-4
+  weight_decay: 1.0e-4
+  num_workers: 6
+  grad_clip: 1.0
+  eta_min: 1.0e-6
+  warmup_epochs: 3
+  w_rec: 1.0
+  w_perc: 0.05
+  w_grad: 0.5
+  w_phys: 0.2
+  w_phys_rec: 1.0
+  w_smooth: 0.1
+  w_trans: 2.0
+  use_perceptual: true
+  runs_dir: "runs"
+  log_every: 20
+  val_every: 1
+  vis_every: 5
+  n_vis_samples: 8
+
+wandb:
+  enabled: true
+  project: "lidar-dehazing"
+  run_name: null
+  tags: ["stf", "baseline", "aod_net"]
+  log_images: true
