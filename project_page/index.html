@@ -210,9 +210,8 @@ footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--rule);
 </header>
 
 <section id="example">
-  <h2>STF Examples</h2>
-<h3 style="margin-top:12px">Real dense fog</h3>
-<div class="teaser" style="padding-top:16px">
+  <h2>Real Fog Example</h2>
+<div class="teaser" style="padding-top:0">
   <div class="compare" id="cmp" style="--split:50%">
     <img src="assets/realfog_hazy.png" alt="Real dense-fog camera frame of a house with two people outside" width="512" height="512">
     <img class="after" src="assets/realfog_restored.png" alt="The same frame restored by PhysDNet-M" width="512" height="512">
@@ -233,8 +232,18 @@ footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--rule);
   </div>
 </div>
 
-<h3 style="margin-top:40px">Synthetic fog with ground truth</h3>
-<div class="teaser" style="padding-top:16px">
+</section>
+
+<section id="abstract">
+  <h2>Abstract</h2>
+  <div class="prose abstract">
+    <p>Modern dehazing networks are often computationally expensive and overfit to synthetic haze, limiting real-time deployment. This underscores an urgent demand for efficient, high-fidelity restoration methods that can operate on resource-constrained edge devices in practical, dynamic environments. We introduce PhysDNet, a lightweight multimodal architecture that fuses NIR imagery with sparse LiDAR depth and is trained with a physics-constrained dual-head objective. Differentiating through a fixed Koschmieder inversion induces <i>density-adaptive gradient amplification</i>, acting as an implicit resource allocation mechanism that concentrates learning on heavily degraded regions without increasing inference cost. PhysDNet delivers superior restoration with minimal capacity and enhanced training efficiency, facilitating real-time deployment on edge devices without increasing inference overhead. On the Seeing Through Fog benchmark, PhysDNet outperforms competitors by <b>1.67 dB</b> at <b>5.2×</b> lower compute and recovering <b>54.9%</b> of fog-induced detection loss. Ablations and cross-domain evaluations show that physics-guided training improves generalization including under non-homogeneous haze that violates the Koschmieder assumption. PhysDNet further demonstrates compatibility with fixed-function NPUs, running at <b>29/45/99 FPS</b> across L/M/S variants on an NPU rated at &lt;4 W TDP.</p>
+  </div>
+</section>
+
+<section id="synthetic">
+  <h2>Synthetic Fog Example</h2>
+<div class="teaser" style="padding-top:0">
   <div class="compare" id="cmp2" style="--split:50%">
     <img src="assets/synthfog_hazy.png" alt="Clear STF street frame with synthetic fog added" width="512" height="512">
     <img class="after" src="assets/synthfog_restored.png" alt="The same frame restored by PhysDNet-M" width="512" height="512">
@@ -250,13 +259,6 @@ footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--rule);
     <label class="toggle"><input type="checkbox" data-lidar="#cmp2"> Overlay sparse LiDAR returns</label>
   </div>
 </div>
-</section>
-
-<section id="abstract">
-  <h2>Abstract</h2>
-  <div class="prose abstract">
-    <p>Modern dehazing networks are often computationally expensive and overfit to synthetic haze, limiting real-time deployment. This underscores an urgent demand for efficient, high-fidelity restoration methods that can operate on resource-constrained edge devices in practical, dynamic environments. We introduce PhysDNet, a lightweight multimodal architecture that fuses NIR imagery with sparse LiDAR depth and is trained with a physics-constrained dual-head objective. Differentiating through a fixed Koschmieder inversion induces <i>density-adaptive gradient amplification</i>, acting as an implicit resource allocation mechanism that concentrates learning on heavily degraded regions without increasing inference cost. PhysDNet delivers superior restoration with minimal capacity and enhanced training efficiency, facilitating real-time deployment on edge devices without increasing inference overhead. On the Seeing Through Fog benchmark, PhysDNet outperforms competitors by <b>1.67 dB</b> at <b>5.2×</b> lower compute and recovering <b>54.9%</b> of fog-induced detection loss. Ablations and cross-domain evaluations show that physics-guided training improves generalization including under non-homogeneous haze that violates the Koschmieder assumption. PhysDNet further demonstrates compatibility with fixed-function NPUs, running at <b>29/45/99 FPS</b> across L/M/S variants on an NPU rated at &lt;4 W TDP.</p>
-  </div>
 </section>
 
 <figure class="overview">
