@@ -86,7 +86,7 @@ figcaption b { color: var(--ink); font-weight: 600; }
 .compare .tag.l { left: 10px; } .compare .tag.r { right: 10px; }
 .compare input[type=range] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: ew-resize; }
 .teaser-side { display: grid; gap: 16px; }
-.overview { padding-top: 28px; }
+.overview { padding-top: 44px; }
 .highlights { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
 .toggle { display: inline-flex; gap: 8px; align-items: center; font-size: 0.95rem; cursor: pointer; }
 
@@ -205,21 +205,9 @@ footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--rule);
       <svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM9 9h6M9 13h6"/></svg>BibTeX</a>
   </div>
   <nav class="toc" aria-label="Sections">
-    <a href="#abstract">Abstract</a><a href="#example">Example</a><a href="#method">Method</a><a href="#results">Results</a><a href="#analysis">Extended analysis</a><a href="#deployment">Deployment</a><a href="#bibtex">Citation</a>
+    <a href="#example">Example</a><a href="#abstract">Abstract</a><a href="#method">Method</a><a href="#results">Results</a><a href="#analysis">Extended analysis</a><a href="#deployment">Deployment</a><a href="#bibtex">Citation</a>
   </nav>
 </header>
-
-<figure class="overview">
-  <img src="assets/overview_illustration.jpg" alt="Overview illustration: a smoke-filled corridor and simulated sparse LiDAR enter PhysDNet; differentiating through the physics inversion amplifies gradients in low-transmission regions during training; the restored image reveals a person and an obstacle for detection" width="1586" height="878">
-  <figcaption><b>Overview.</b> Hazy imagery and sparse LiDAR are fused by PhysDNet. During training, differentiating through the physics inversion scales gradients by (t̂+ε)<sup>−2</sup>, focusing learning on low-transmission regions at zero inference cost. Conceptual illustration of a potential emergency-response application; the scene and LiDAR are schematic, not experimental results.</figcaption>
-</figure>
-
-<section id="abstract">
-  <h2>Abstract</h2>
-  <div class="prose abstract">
-    <p>Modern dehazing networks are often computationally expensive and overfit to synthetic haze, limiting real-time deployment. This underscores an urgent demand for efficient, high-fidelity restoration methods that can operate on resource-constrained edge devices in practical, dynamic environments. We introduce PhysDNet, a lightweight multimodal architecture that fuses NIR imagery with sparse LiDAR depth and is trained with a physics-constrained dual-head objective. Differentiating through a fixed Koschmieder inversion induces <i>density-adaptive gradient amplification</i>, acting as an implicit resource allocation mechanism that concentrates learning on heavily degraded regions without increasing inference cost. PhysDNet delivers superior restoration with minimal capacity and enhanced training efficiency, facilitating real-time deployment on edge devices without increasing inference overhead. On the Seeing Through Fog benchmark, PhysDNet outperforms competitors by <b>1.67 dB</b> at <b>5.2×</b> lower compute and recovering <b>54.9%</b> of fog-induced detection loss. Ablations and cross-domain evaluations show that physics-guided training improves generalization including under non-homogeneous haze that violates the Koschmieder assumption. PhysDNet further demonstrates compatibility with fixed-function NPUs, running at <b>29/45/99 FPS</b> at &lt;4 W across L/M/S variants.</p>
-  </div>
-</section>
 
 <section id="example">
   <h2>Real STF Example</h2>
@@ -238,12 +226,24 @@ footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--rule);
     <ul class="highlights">
       <li><b>36.46 dB</b> PSNR on STF, +1.67 dB over FFA-Net at 5.2× lower compute</li>
       <li><b>54.9%</b> of fog-induced YOLOv8 detection loss recovered</li>
-      <li><b>29 / 45 / 99 FPS</b> (L / M / S) on a fixed-function NPU at &lt;4 W, INT8</li>
+      <li><b>29 / 45 / 99 FPS</b> (L / M / S) INT8 on a fixed-function NPU rated at &lt;4 W TDP</li>
       <li>Physics head is used only in training: <b>zero inference overhead</b></li>
     </ul>
   </div>
 </div>
 </section>
+
+<section id="abstract">
+  <h2>Abstract</h2>
+  <div class="prose abstract">
+    <p>Modern dehazing networks are often computationally expensive and overfit to synthetic haze, limiting real-time deployment. This underscores an urgent demand for efficient, high-fidelity restoration methods that can operate on resource-constrained edge devices in practical, dynamic environments. We introduce PhysDNet, a lightweight multimodal architecture that fuses NIR imagery with sparse LiDAR depth and is trained with a physics-constrained dual-head objective. Differentiating through a fixed Koschmieder inversion induces <i>density-adaptive gradient amplification</i>, acting as an implicit resource allocation mechanism that concentrates learning on heavily degraded regions without increasing inference cost. PhysDNet delivers superior restoration with minimal capacity and enhanced training efficiency, facilitating real-time deployment on edge devices without increasing inference overhead. On the Seeing Through Fog benchmark, PhysDNet outperforms competitors by <b>1.67 dB</b> at <b>5.2×</b> lower compute and recovering <b>54.9%</b> of fog-induced detection loss. Ablations and cross-domain evaluations show that physics-guided training improves generalization including under non-homogeneous haze that violates the Koschmieder assumption. PhysDNet further demonstrates compatibility with fixed-function NPUs, running at <b>29/45/99 FPS</b> across L/M/S variants on an NPU rated at &lt;4 W TDP.</p>
+  </div>
+</section>
+
+<figure class="overview">
+  <img src="assets/overview_illustration.jpg" alt="Overview illustration: a smoke-filled corridor and simulated sparse LiDAR enter PhysDNet; differentiating through the physics inversion amplifies gradients in low-transmission regions during training; the restored image reveals a person and an obstacle for detection" width="1586" height="878">
+  <figcaption><b>Overview.</b> Hazy imagery and sparse LiDAR are fused by PhysDNet. During training, differentiating through the physics inversion scales gradients by (t̂+ε)<sup>−2</sup>, focusing learning on low-transmission regions at zero inference cost. Conceptual illustration of a potential emergency-response application; the scene and LiDAR are schematic, not experimental results.</figcaption>
+</figure>
 
 <section id="method">
   <h2>Method</h2>
@@ -315,7 +315,7 @@ footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--rule);
     <h3>Restoration quality on Seeing Through Fog</h3>
     <div class="tablewrap">
       <table>
-        <caption><b>Table 1.</b> STF validation set (1,299 frames), direct head. PhysDNet-M: mean ± SE over 3 seeds. Best in bold, second underlined.</caption>
+        <caption><b>Table 1.</b> STF validation set (1,299 frames), direct head. PhysDNet-M: mean ± SD over 3 training seeds. Best in bold, second underlined.</caption>
         <thead><tr><th>Method</th><th class="l">Input</th><th>Res.</th><th>Params (M)</th><th>GMACs</th><th>PSNR (dB) ↑</th><th>SSIM ↑</th></tr></thead>
         <tbody>
           <tr><td>DCP</td><td class="l">NIR</td><td>256</td><td>0</td><td>—</td><td>17.62</td><td>0.5992</td></tr>
@@ -342,10 +342,10 @@ footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--rule);
     <h3>Physics head ablation</h3>
     <div class="tablewrap">
       <table>
-        <caption><b>Table 2.</b> Removing the physics head (NoPhy) from an identical ch64 model.</caption>
+        <caption><b>Table 2.</b> Removing the physics head (NoPhy) from an identical ch64 model. One training run per variant (seed 42, 500 epochs; NoPhy stopped early at epoch 288). The PhysDNet-M row is the seed-42 checkpoint, so it differs slightly from the 3-seed mean in Table 1 (35.55 dB / 0.9566).</caption>
         <thead><tr><th>Variant</th><th>Physics head</th><th>Params (M)</th><th>PSNR (dB)</th><th>SSIM</th><th>mAP (%)</th><th>ΔmAP</th></tr></thead>
         <tbody>
-          <tr class="ours"><td>PhysDNet-M</td><td>✓</td><td>2.95</td><td><b>35.55</b></td><td><b>0.9569</b></td><td><b>11.70</b></td><td><b>+3.05</b></td></tr>
+          <tr class="ours"><td>PhysDNet-M</td><td>✓</td><td>2.95</td><td><b>35.53</b></td><td><b>0.9569</b></td><td><b>11.70</b></td><td><b>+3.05</b></td></tr>
           <tr><td>PhysDNet-M NoPhy</td><td>×</td><td>2.91</td><td>30.02</td><td>0.9263</td><td>10.70</td><td>+2.06</td></tr>
           <tr class="sep"><td><i>Difference</i></td><td></td><td>−0.04</td><td>−5.51</td><td>−0.0306</td><td>−1.00</td><td>−0.99</td></tr>
         </tbody>
@@ -459,13 +459,13 @@ footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--rule);
 
   <div class="sub">
     <h3>When does gradient amplification help?</h3>
-    <p class="prose">We ran matched no-physics (NoPhy) controls on two further inverse problems and on RGB-only data. The mechanism helps when the inverted physical parameter is <b>anchored</b> by a privileged measurement such as depth. Without an anchor it is neutral, and it never hurts.</p>
+    <p class="prose">We ran matched no-physics (NoPhy) controls on two further inverse problems and on RGB-only data. In these tests the mechanism helped when the inverted physical parameter was <b>anchored</b> by a privileged measurement such as depth. Without an anchor, the tested settings showed no measurable gain (RESIDE-6K) or an inconclusive result (LOL-v1).</p>
     <div class="tablewrap">
       <table>
         <caption><b>Mechanism scope.</b> Physics variant vs. matched NoPhy twin, same architecture and budget.</caption>
         <thead><tr><th>Task</th><th class="l">Inverted model</th><th class="l">Anchored?</th><th class="l">Physics vs. NoPhy</th></tr></thead>
         <tbody>
-          <tr class="ours"><td>Dehazing, STF (NIR + sparse LiDAR)</td><td class="l">t = e<sup>−βd</sup></td><td class="l">yes, LiDAR</td><td class="l"><b>+5.51 dB</b> PSNR, +0.99 pp mAP</td></tr>
+          <tr class="ours"><td>Dehazing, STF (NIR + sparse LiDAR)</td><td class="l">t = e<sup>−βd</sup></td><td class="l">yes, LiDAR</td><td class="l"><b>+5.51 dB</b> PSNR, +0.99 pp mAP (seed 42)</td></tr>
           <tr class="ours"><td>Underwater restoration (NYU-v2 RGBD synth.)</td><td class="l">per-channel t<sub>c</sub> = e<sup>−β<sub>c</sub>d</sup></td><td class="l">yes, sparse depth</td><td class="l">+0.38 dB overall, +0.82 dB mid-t bin, +0.60 dB red channel</td></tr>
           <tr class="ours"><td>Low-light, LOL-v2-Real (100 images)</td><td class="l">Retinex R = I / (L + ε)</td><td class="l">yes</td><td class="l">+0.5 to 0.6 dB, SSIM 0.906 vs 0.897</td></tr>
           <tr class="sep"><td>Dehazing, RESIDE-6K (RGB only)</td><td class="l">t = e<sup>−βd</sup></td><td class="l">no</td><td class="l">tie, 28.4 vs 28.6 dB</td></tr>
@@ -473,7 +473,7 @@ footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--rule);
         </tbody>
       </table>
     </div>
-    <p style="font-size:.88rem;color:var(--muted);text-align:center">Low-light enhancement is the A → 0 special case of Eq. 5.</p>
+    <p style="font-size:.88rem;color:var(--muted);text-align:center">Low-light enhancement is the A → 0 special case of Eq. 5. Non-STF rows are single-seed. NoPhy removes the physics head together with its losses, so the STF row measures the full physics training regime rather than gradient amplification in isolation.</p>
   </div>
 
   <div class="sub">
@@ -548,10 +548,10 @@ footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--rule);
   <p class="prose">PhysDNet uses only NPU-friendly operators (depthwise-separable convolutions, BatchNorm, ReLU6, bilinear upsampling). Under standard ONNX export and vendor INT8 post-training quantization, only PhysDNet and AOD-Net compile for the fixed-function NPU, and AOD-Net's restoration quality (20.95 dB) is insufficient for deployment.</p>
   <div class="tablewrap">
     <table>
-      <caption><b>Table 6.</b> 256×256, batch 1. Fixed-function 26 TOPS NPU (&lt;4 W TDP) uses INT8 PTQ; Jetson Orin Nano uses TensorRT FP16. ✗ = compilation failure.</caption>
+      <caption><b>Table 6.</b> 256×256, batch 1. Fixed-function 26 TOPS NPU uses INT8 PTQ; &lt;4 W is its rated TDP, and NPU power was not measured. Jetson Orin Nano uses TensorRT FP16; its power is measured mean onboard power (tegrastats) over the timed window. ✗ = compilation failure.</caption>
       <thead>
         <tr><th></th><th></th><th></th><th colspan="2" style="text-align:center">Fixed-function NPU</th><th colspan="2" style="text-align:center">Jetson Orin Nano</th></tr>
-        <tr><th>Model</th><th>Params (M)</th><th>GMACs</th><th>Compile</th><th>FPS</th><th>FPS</th><th>Power (W)</th></tr>
+        <tr><th>Model</th><th>Params (M)</th><th>GMACs</th><th>Compile</th><th>FPS</th><th>FPS</th><th>Measured power (W)</th></tr>
       </thead>
       <tbody>
         <tr><td>AOD-Net LiDAR</td><td>0.002</td><td>0.06</td><td>✓</td><td><b>1220</b></td><td>327.0</td><td>4.94</td></tr>
