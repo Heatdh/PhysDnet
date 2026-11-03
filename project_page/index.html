@@ -210,8 +210,9 @@ footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--rule);
 </header>
 
 <section id="example">
-  <h2>Real STF Example</h2>
-<div class="teaser" style="padding-top:0">
+  <h2>STF Examples</h2>
+<h3 style="margin-top:12px">Real dense fog</h3>
+<div class="teaser" style="padding-top:16px">
   <div class="compare" id="cmp" style="--split:50%">
     <img src="assets/realfog_hazy.png" alt="Real dense-fog camera frame of a house with two people outside" width="512" height="512">
     <img class="after" src="assets/realfog_restored.png" alt="The same frame restored by PhysDNet-M" width="512" height="512">
@@ -222,13 +223,31 @@ footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--rule);
   </div>
   <div class="teaser-side">
     <p><b>Drag across the image</b> to compare a real dense-fog camera frame from Seeing Through Fog (no synthetic haze added) with the output of the paper's PhysDNet-M checkpoint. Real fog has no clear ground truth, so this example is qualitative. PhysDNet also receives the sparse projected LiDAR depth shown by the toggle; dense fog leaves only 431 returns in this 512×512 crop.</p>
-    <label class="toggle"><input type="checkbox" id="lidarToggle"> Overlay sparse LiDAR returns</label>
+    <label class="toggle"><input type="checkbox" id="lidarToggle" data-lidar="#cmp"> Overlay sparse LiDAR returns</label>
     <ul class="highlights">
       <li><b>36.46 dB</b> PSNR on STF, +1.67 dB over FFA-Net at 5.2× lower compute</li>
       <li><b>54.9%</b> of fog-induced YOLOv8 detection loss recovered</li>
       <li><b>29 / 45 / 99 FPS</b> (L / M / S) INT8 on a fixed-function NPU rated at &lt;4 W TDP</li>
       <li>Physics head is used only in training: <b>zero inference overhead</b></li>
     </ul>
+  </div>
+</div>
+
+<h3 style="margin-top:40px">Synthetic fog with ground truth</h3>
+<div class="teaser" style="padding-top:16px">
+  <div class="compare" id="cmp2" style="--split:50%">
+    <img src="assets/synthfog_hazy.png" alt="Clear STF street frame with synthetic fog added" width="512" height="512">
+    <img class="after" src="assets/synthfog_restored.png" alt="The same frame restored by PhysDNet-M" width="512" height="512">
+    <img class="lidar" src="assets/lidar.png" alt="" width="512" height="512">
+    <div class="handle"></div>
+    <span class="tag l">Synthetic fog</span><span class="tag r">PhysDNet</span>
+    <input type="range" min="0" max="100" value="50" aria-label="Drag to compare synthetic-fog input and PhysDNet output">
+  </div>
+  <div class="teaser-side">
+    <p>The same comparison on a clear STF frame with fog added by the training-time haze model
+    (β = 0.025, A = 0.85). Because the fog follows nearest-neighbour-filled LiDAR depth, it forms blocky patches
+    rather than smooth haze. PSNR of the PhysDNet-M output against the clear frame: <b>35.2 dB</b>.</p>
+    <label class="toggle"><input type="checkbox" data-lidar="#cmp2"> Overlay sparse LiDAR returns</label>
   </div>
 </div>
 </section>
@@ -619,9 +638,12 @@ const el = (tag, attrs = {}, parent) => {
 };
 
 /* teaser */
-const cmp = $("#cmp"), rng = $("#cmpRange");
-rng.addEventListener("input", () => cmp.style.setProperty("--split", rng.value + "%"));
-$("#lidarToggle").addEventListener("change", e => cmp.classList.toggle("show-lidar", e.target.checked));
+document.querySelectorAll(".compare").forEach(c => {
+  const r = c.querySelector("input[type=range]");
+  r.addEventListener("input", () => c.style.setProperty("--split", r.value + "%"));
+});
+document.querySelectorAll("[data-lidar]").forEach(t =>
+  t.addEventListener("change", e => $(t.dataset.lidar).classList.toggle("show-lidar", e.target.checked)));
 
 /* architecture explorer */
 const svg = $("#archSvg"), gE = $("#edges"), gN = $("#nodes");
