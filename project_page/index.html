@@ -213,15 +213,15 @@ footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--rule);
   <h2>Real STF Example</h2>
 <div class="teaser" style="padding-top:0">
   <div class="compare" id="cmp" style="--split:50%">
-    <img src="assets/hazy_nir.png" alt="Foggy NIR-gated frame of a snowy street at night" width="512" height="512">
-    <img class="after" src="assets/restored.png" alt="The same frame restored by PhysDNet" width="512" height="512">
-    <img class="lidar" src="assets/lidar.png" alt="" width="512" height="512">
+    <img src="assets/realfog_hazy.png" alt="Real dense-fog camera frame of a house with two people outside" width="512" height="512">
+    <img class="after" src="assets/realfog_restored.png" alt="The same frame restored by PhysDNet-M" width="512" height="512">
+    <img class="lidar" src="assets/realfog_lidar.png" alt="" width="512" height="512">
     <div class="handle"></div>
     <span class="tag l">Hazy image</span><span class="tag r">PhysDNet</span>
     <input id="cmpRange" type="range" min="0" max="100" value="50" aria-label="Drag to compare hazy input and PhysDNet output">
   </div>
   <div class="teaser-side">
-    <p><b>Drag across the image</b> to compare a hazy gated-NIR frame from Seeing Through Fog with PhysDNet's restoration. PhysDNet also receives the sparse projected LiDAR depth shown by the toggle.</p>
+    <p><b>Drag across the image</b> to compare a real dense-fog camera frame from Seeing Through Fog (no synthetic haze added) with the output of the paper's PhysDNet-M checkpoint. Real fog has no clear ground truth, so this example is qualitative. PhysDNet also receives the sparse projected LiDAR depth shown by the toggle; dense fog leaves only 431 returns in this 512×512 crop.</p>
     <label class="toggle"><input type="checkbox" id="lidarToggle"> Overlay sparse LiDAR returns</label>
     <ul class="highlights">
       <li><b>36.46 dB</b> PSNR on STF, +1.67 dB over FFA-Net at 5.2× lower compute</li>
