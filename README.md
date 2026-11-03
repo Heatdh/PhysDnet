@@ -1,9 +1,9 @@
 # PhysDNet: Physics-Driven Gradient Amplification for Real-Time Image Dehazing
 
-Reference implementation accompanying the NeurIPS 2026 submission
+Reference implementation accompanying the NeurIPS 2026 paper
 *"PhysDNet: Physics-Driven Gradient Amplification for Real-Time Image Dehazing"*.
-# Disclaimer
-This code is provided exclusively for the purpose of double-blind peer review. All rights reserved. No license is granted for commercial use, modification, redistribution, or use in derivative works. By accessing this repository, you agree to adhere to the confidentiality guidelines of the peer review process.
+
+**Project page:** https://rayendhahri.com/PhysDnet/
 
 
 PhysDNet is a lightweight multimodal dehazing network that fuses gated NIR
@@ -18,11 +18,13 @@ gradient scaling that concentrates learning on heavily degraded regions at
 | Variant | base_ch | Params | GMACs | PSNR (STF) |
 |---------|---------|--------|-------|------------|
 | PhysDNet-S | 32 | 0.72 M | 2.24 | 32.80 dB |
-| PhysDNet-M | 64 | 2.95 M | 8.56 | 35.55 dB |
+| PhysDNet-M | 64 | 2.95 M | 8.56 | 35.55 dB (mean of 3 seeds) |
 | PhysDNet-L | 96 | 6.59 M | 18.98 | 36.46 dB |
 
-Pretrained weights (`checkpoints/`) and pre-exported ONNX files (`onnx/`) are
-not tracked in git; place them in those folders locally to run the commands below.
+Pretrained weights (`checkpoints/`) and exported ONNX files (`onnx/`) are not
+tracked in git. See [Checkpoints](#checkpoints) for how to obtain the weights,
+and [ONNX export](#onnx-export-and-edge-deployment-section-38) to produce the
+ONNX files.
 
 ## Setup
 
@@ -76,7 +78,7 @@ python train.py --config configs/physdnet_l.yaml
 # NoPhy ablation (Table 2)
 python train.py --config configs/physdnet_m_nophy.yaml
 
-# Multi-seed runs for the mean ± SE in Table 1
+# Multi-seed runs for the mean ± SD in Table 1
 python train.py --config configs/seeds/physdnet_m_seed1.yaml
 python train.py --config configs/seeds/physdnet_m_seed2.yaml
 
@@ -153,8 +155,6 @@ python export_onnx.py --checkpoint checkpoints/physdnet_s.pth \
                       --output onnx/physdnet_s.onnx --img_h 256 --img_w 256
 python export_onnx.py --checkpoint checkpoints/physdnet_m.pth --output onnx/physdnet_m.onnx
 python export_onnx.py --checkpoint checkpoints/physdnet_l.pth --output onnx/physdnet_l.onnx
-
-# Pre-built ONNX files are also shipped under onnx/
 ```
 
 For Jetson Orin Nano benchmarking:
@@ -179,6 +179,11 @@ python measure_flops.py --resolution 256 256
 
 ## Checkpoints
 
+Pretrained checkpoints are not yet hosted publicly. To obtain them, contact the
+corresponding author at rayendhahri@gmail.com. Place the files under
+`checkpoints/` with the names below; the evaluation and export commands above
+expect these paths.
+
 | File | Variant | base_ch | Notes |
 |------|---------|---------|-------|
 | `checkpoints/physdnet_s.pth` | robust | 32 | seed 0 (paper Table 1) |
@@ -194,7 +199,7 @@ All three were trained for 500 epochs on STF clear+overcast with
 ```
 configs/                       Training configs (S/M/L + NoPhy + seeds + baselines)
 checkpoints/                   Pretrained PhysDNet S/M/L
-onnx/                          Pre-exported ONNX files
+onnx/                          Exported ONNX files (not tracked; see export_onnx.py)
 baselines/                     AOD-Net, FFA-Net, DehazeFormer-T, DEA-Net, DCP
 downstream_detection/          YOLOv8-M evaluation pipeline
 model.py                       PhysDNet backbone + dual heads
@@ -210,3 +215,9 @@ measure_flops.py               FLOPs / params accounting
 project_lidar_to_depth.py      LiDAR -> camera-frame sparse depth
 parse_stf_labels.py            STF detection labels for downstream task
 ```
+
+## License
+
+The code in this repository is released under the [MIT License](LICENSE).
+The datasets used in the paper (Seeing Through Fog, O-HAZE, I-HAZE, NH-HAZE,
+RESIDE, RTTS) are not redistributed here and remain subject to their own terms.
